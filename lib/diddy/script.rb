@@ -29,8 +29,8 @@ module Diddy
       # check if step exists
       if steps_instance.class.has_step?(description)
         @steps << Diddy::Step.new(
-          description:      description, 
-          steps_instance:   steps_instance, 
+          description:      description,
+          steps_instance:   steps_instance,
           definition:       steps_instance.class.definition(description)
         )
       else
@@ -48,15 +48,19 @@ module Diddy
         @steps.each do |step|
           run_step(step)
         end
+        return true
+
       rescue ScriptAborted
         puts "Aborted"
+        return false
+
       end
     end
 
     #
     # Defines a script
-    #   
-    #   Diddy::Script.define('Test API') do 
+    #
+    #   Diddy::Script.define('Test API') do
     #     uses ApiSteps
     #     uses LoginSteps
     #
@@ -74,10 +78,20 @@ module Diddy
     end
 
     #
-    # Runs all defined scripts
+    # Runs all defined scripts. Returns true if and only if all indivudial
+    # scripts returned true. Otherwise returns false.
     #
     def self.run_all
-      @scripts.each { |script| script.run }
+      puts "[#{Time.now}] Diddy starting to run #{@scripts.size} scripts"
+
+      # Run all scripts and remember their return status
+      script_statuses = @scripts.map { |script| script.run }
+
+      puts "[#{Time.now}] Diddy finished running #{@scripts.size} scripts"
+
+      # If one of the scripts returned with "false"; make the entire run
+      # return false as well
+      script_statuses.include?(false) ? false : true
     end
 
     #
@@ -85,6 +99,10 @@ module Diddy
     #
     def self.only_run(scenario)
       @scripts.select { |script| script.scenario == scenario }.first.run
+    end
+
+    def self.scripts
+      @scripts
     end
 
     private

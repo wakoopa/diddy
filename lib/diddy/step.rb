@@ -14,7 +14,7 @@ module Diddy
       attrs.each { |k,v| send("#{k}=", v) }
     end
 
-    # 
+    #
     # Runs the step
     #
     def run
