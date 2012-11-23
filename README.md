@@ -1,6 +1,9 @@
 # Diddy
 
-Diddy is a simple script/scenario runner that is a mix between Spinach, Cucumber and/or Steak. Diddy is not specificly targeted for testing frameworks. At this moment we use Diddy to run analysis on our different production servers.
+Diddy is a simple script/scenario runner that is a mix between Spinach, Cucumber and/or Steak. Diddy is not specificly targeted for testing frameworks.  
+
+At this moment we use Diddy to full integration tests on our various production servers to check if everything works nicely together. We use this in combination 
+with the awesome Mechanize gem. 
 
 ## How it works
 
@@ -32,7 +35,7 @@ Then, define your steps:
       end
     end
 
-Every step, needs to return true. If not: the step fails. Make sure you define your steps so that they always return a true or false depending on it's action.
+Note: every step, needs to return true. If not: the step fails. Make sure you define your steps so that they always return a true or false depending on it's action.
 
 ## Scoping
 
@@ -50,6 +53,8 @@ Every step definition class, has it own scope. To share variables between step d
         HttpParty.get("http://www.example.com/api/#{shared.user_id}")
       end
     end
+
+This "shared" state (the state of the steps class and the shared vars), lives until a script is finished.
 
 ## Run the whole thing
 
