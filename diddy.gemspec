@@ -4,9 +4,9 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |gem|
   gem.name          = "diddy"
-  gem.version       = '0.1.0'
-  gem.authors       = ["Diederick Lawson:"]
-  gem.email         = ["diederick@altovista.nl"]
+  gem.version       = '0.2.0'
+  gem.authors       = ["Diederick Lawson", "Marcel de Graaf"]
+  gem.email         = ["diederick@altovista.nl", "mail@marceldegraaf.net"]
   gem.description   = %q{Diddy script runner}
   gem.summary       = %q{}
   gem.homepage      = "http://github.com/wakoopa/diddy"
