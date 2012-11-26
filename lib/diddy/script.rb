@@ -1,6 +1,6 @@
 module Diddy
   class Script
-    attr_accessor :steps, :scenario
+    attr_accessor :steps, :scenario, :log
 
     #
     # Creates a script
@@ -15,6 +15,13 @@ module Diddy
     def uses(klass)
       @steps_instances ||= []
       @steps_instances << klass.new(shared_scope)
+    end
+
+    #
+    # Full log
+    #
+    def log
+      @log ||= ""
     end
 
     #
@@ -43,7 +50,7 @@ module Diddy
     #
     def run
       begin
-        puts scenario
+        write_log(scenario)
 
         @steps.each do |step|
           run_step(step)
@@ -51,10 +58,17 @@ module Diddy
         return true
 
       rescue ScriptAborted
-        puts "Aborted"
+        write_log("Aborted")
         return false
 
       end
+    end
+
+    #
+    # Returns the log of the last run
+    #
+    def self.last_log
+      @last_log ||= ""
     end
 
     #
@@ -82,16 +96,27 @@ module Diddy
     # scripts returned true. Otherwise returns false.
     #
     def self.run_all
+      # empty log
+      self.last_log = ""
+
       puts "[#{Time.now}] Diddy starting to run #{@scripts.size} scripts"
 
       # Run all scripts and remember their return status
-      script_statuses = @scripts.map { |script| script.run }
+      status = @scripts.map do |script|
+        # run the script
+        result = script.run
+
+        # concat log of script to general log
+        last_log << script.log
+
+        result
+      end
 
       puts "[#{Time.now}] Diddy finished running #{@scripts.size} scripts"
 
       # If one of the scripts returned with "false"; make the entire run
       # return false as well
-      script_statuses.include?(false) ? false : true
+      status.include?(false) ? false : true
     end
 
     #
@@ -134,9 +159,17 @@ module Diddy
     #
     def print_exception(current_step, exception)
       # print backtrace
-      puts "- #{exception.message}"
-      puts "  #{exception.backtrace.join("\n  ")}"
-      puts "\n"
+      write_log "- #{exception.message}"
+      write_log "  #{exception.backtrace.join("\n  ")}"
+      write_log "\n"
+    end
+
+    #
+    # Writes a line to the log
+    #
+    def write_log(message)
+      puts message
+      log << "#{message}\n"
     end
 
     #
