@@ -97,7 +97,7 @@ module Diddy
     #
     def self.run_all
       # empty log
-      self.last_log = ""
+      @last_log = ""
 
       puts "[#{Time.now}] Diddy starting to run #{@scripts.size} scripts"
 
@@ -107,7 +107,7 @@ module Diddy
         result = script.run
 
         # concat log of script to general log
-        last_log << script.log
+        @last_log << script.log
 
         result
       end
