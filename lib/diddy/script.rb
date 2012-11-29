@@ -1,5 +1,10 @@
+# encoding: utf-8
 module Diddy
   class Script
+    STATE_OK = 1
+    STATE_FAILED = 2
+    STATE_EXCEPTION = 3
+
     attr_accessor :steps, :scenario, :log
 
     #
@@ -50,7 +55,7 @@ module Diddy
     #
     def run
       begin
-        write_log(scenario)
+        self.class.write_log(scenario)
 
         @steps.each do |step|
           run_step(step)
@@ -58,7 +63,7 @@ module Diddy
         return true
 
       rescue ScriptAborted
-        write_log("Aborted")
+        self.class.write_log("Aborted")
         return false
 
       end
@@ -99,7 +104,7 @@ module Diddy
       # empty log
       @last_log = ""
 
-      puts "[#{Time.now}] Diddy starting to run #{@scripts.size} scripts"
+      write_log("[#{Time.now}] Diddy starting to run #{@scripts.size} scripts")
 
       # Run all scripts and remember their return status
       status = @scripts.map do |script|
@@ -107,12 +112,12 @@ module Diddy
         result = script.run
 
         # concat log of script to general log
-        @last_log << script.log
+        write_log(script.log)
 
         result
       end
 
-      puts "[#{Time.now}] Diddy finished running #{@scripts.size} scripts"
+      write_log("[#{Time.now}] Diddy finished running #{@scripts.size} scripts")
 
       # If one of the scripts returned with "false"; make the entire run
       # return false as well
@@ -132,6 +137,11 @@ module Diddy
 
     private
 
+    def self.write_log(message, print = true)
+      puts(message) if print
+      self.last_log << "#{message}\n"
+    end
+
     #
     # Runs one step
     #
@@ -141,16 +151,35 @@ module Diddy
         result = step.run
 
       rescue Exception => exception
-        step.log(Diddy::Step::STATE_EXCEPTION)
+        log_step(step, STATE_EXCEPTION)
         print_exception(step, exception)
         raise ScriptAborted.new
       end
 
       if result
-        step.log(Diddy::Step::STATE_OK)
+        log_step(step, STATE_OK)
       else
-        step.log(Diddy::Step::STATE_EXCEPTION)
+        log_step(step, STATE_EXCEPTION)
         raise ScriptAborted.new
+      end
+    end
+
+    #
+    # Logs step to log
+    #
+    def log_step(step, state)
+      if state == STATE_FAILED || state == STATE_EXCEPTION
+        print(red(bold("✕ #{step.description}")))
+        self.class.write_log("✕ #{step.description}", false)
+
+        if state == STATE_EXCEPTION
+          print(" [EXCEPTION]")
+          print("\n\n")
+          self.class.write_log("[EXCEPTION]", false)
+        end
+      else
+        print(green("✓ #{step.description}"), "\n")
+        self.class.write_log("✓ #{step.description}", false)
       end
     end
 
@@ -159,17 +188,9 @@ module Diddy
     #
     def print_exception(current_step, exception)
       # print backtrace
-      write_log "- #{exception.message}"
-      write_log "  #{exception.backtrace.join("\n  ")}"
-      write_log "\n"
-    end
-
-    #
-    # Writes a line to the log
-    #
-    def write_log(message)
-      puts message
-      log << "#{message}\n"
+      self.class.write_log("- #{exception.message}")
+      self.class.write_log("  #{exception.backtrace.join("\n  ")}")
+      self.class.write_log("\n")
     end
 
     #
