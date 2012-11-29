@@ -159,7 +159,7 @@ module Diddy
       if result
         log_step(step, STATE_OK)
       else
-        log_step(step, STATE_EXCEPTION)
+        log_step(step, STATE_FAILED)
         raise ScriptAborted.new
       end
     end
