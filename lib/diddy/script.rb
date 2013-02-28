@@ -39,7 +39,7 @@ module Diddy
       steps_instance = find_steps_instance_for(description)
 
       # check if step exists
-      if steps_instance.class.has_step?(description)
+      if steps_instance && steps_instance.class.has_step?(description)
         @steps << Diddy::Step.new(
           description:      description,
           steps_instance:   steps_instance,
