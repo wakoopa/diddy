@@ -1,12 +1,7 @@
 # encoding: utf-8
 module Diddy
   class Step
-    STATE_OK = 1
-    STATE_FAILED = 2
-    STATE_EXCEPTION = 3
-    STATE_PENDING = 4
-
-    attr_accessor :description, :definition, :steps_instance, :run_result
+    attr_accessor :description, :definition, :steps_instance, :run_result, :context
 
     #
     # Initializes step
@@ -30,6 +25,7 @@ module Diddy
 
       # eval the step
       steps_instance.current_step = self
+      steps_instance.context = context
 
       # run the step itself
       result = steps_instance.instance_eval(&definition)

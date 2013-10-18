@@ -51,6 +51,7 @@ module Diddy
 
         # run all the steps within the scenario
         scenario.run_result = run_result
+        scenario.context = context
         scenario.run
 
         puts("\n")

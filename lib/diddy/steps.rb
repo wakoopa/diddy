@@ -3,7 +3,7 @@ module Diddy
   class Steps
     include Helpers
 
-    attr_accessor :sub_steps, :current_step
+    attr_accessor :sub_steps, :current_step, :context
 
     def initialize(shared_scope)
       @shared_scope = shared_scope

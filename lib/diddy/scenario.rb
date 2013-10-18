@@ -65,6 +65,8 @@ module Diddy
       # run proc on this instance as scope
       begin
         step.run_result = run_result
+        step.context = context
+
         result = step.run
 
       rescue Exception => exception

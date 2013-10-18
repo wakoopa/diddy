@@ -1,9 +1,11 @@
 module Diddy
   class Context
-    attr_accessor :options
+    def initialize(vars)
+      @vars = vars
+    end
 
-    def initialize(options)
-      self.options = options
+    def [](key)
+      @vars[key.to_sym]
     end
   end
 end

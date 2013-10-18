@@ -2,6 +2,10 @@ module Diddy
   class RunResult
     attr_accessor :scripts
 
+    def result
+      scripts.all? { |script| script.result }
+    end
+
     #
     # Starts the run of a script. Call this before running a scenario.
     #
