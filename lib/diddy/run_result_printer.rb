@@ -12,7 +12,7 @@ module Diddy
     # @TODO needs to be refactored to a templating language. Quick hack for now.
     #
     def to_html
-      html = "<html><head><style type='text/css'>.error { color: red }; pre { display: block; margin: 1em; };</style><title>Run results</title></head><body>"
+      html = "<html><head><style type='text/css'>.error { color: red }; .ok { color: green }; pre { display: block; margin: 1em; };</style><title>Run results</title></head><body>"
 
       # walk over all scripts
       run_result.scripts.each do |script|
@@ -22,7 +22,7 @@ module Diddy
         script.scenarios.each do |scenario|
           # result was ok? than only log the scenario itself
           if scenario.result
-            html << "<h3>#{scenario.description}</h3>"
+            html << "<h3 class='ok'>#{scenario.description}</h3>"
           else
             # log the error and it's steps
             html << "<h3 class='error'>#{scenario.description}</h3>"
