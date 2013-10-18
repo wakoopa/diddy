@@ -13,6 +13,17 @@ module Diddy
     end
 
     #
+    # Reset me
+    #
+    def reset!
+      instance_variables.each do |var|
+        unless %w(@script @context @description @steps @run_result).include?(var.to_s)
+          remove_instance_variable(var)
+        end
+      end
+    end
+
+    #
     # Determines which step classes should be used
     #
     def uses(klass)
@@ -46,6 +57,8 @@ module Diddy
     #
     def run
       begin
+        @resetted = {}
+
         @steps.each do |step|
           run_step(step)
         end
@@ -64,6 +77,12 @@ module Diddy
     def run_step(step)
       # run proc on this instance as scope
       begin
+        # check if we need to reset the step instance
+        unless @resetted[step.steps_instance.object_id]
+          step.steps_instance.reset!
+          @resetted[step.steps_instance.object_id] = true
+        end
+
         step.run_result = run_result
         step.context = context
 

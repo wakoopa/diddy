@@ -43,6 +43,9 @@ module Diddy
     #
     def run
       scenarios.each_with_index do |scenario, index|
+        # reset scenario
+        scenario.reset!
+
         # print on screen
         puts("Scenario #{index + 1}: #{scenario.description}")
 

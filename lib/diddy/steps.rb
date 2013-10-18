@@ -90,5 +90,16 @@ module Diddy
 
       self.sub_steps << { description: description, valid: valid }
     end
+
+    #
+    # Reset me
+    #
+    def reset!
+      instance_variables.each do |var|
+        unless %w(@shared_scope).include?(var.to_s)
+          remove_instance_variable(var)
+        end
+      end
+    end
   end
 end
