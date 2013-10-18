@@ -1,216 +1,119 @@
 # encoding: utf-8
 module Diddy
+  #
+  # A script contains several scenarios. A script can be a recipe, an application etc.
+  #
   class Script
-    STATE_OK = 1
-    STATE_FAILED = 2
-    STATE_EXCEPTION = 3
+    attr_accessor :scenarios, :description, :context, :run_result
 
-    attr_accessor :steps, :scenario, :log
-
-    #
-    # Creates a script
-    #
-    def initialize(scenario)
-      @scenario = scenario
+    def initialize(description)
+      self.description = description
     end
 
     #
-    # Determines which step classes should be used
+    # Defines a new scenario
     #
-    def uses(klass)
-      @steps_instances ||= []
-      @steps_instances << klass.new(shared_scope)
+    #    scenario('Do something') do
+    #       uses SomeSteps
+    #
+    #       step 'Do this'
+    #       step 'Do that'
+    #     end
+    #
+    def scenario(description, &block)
+      @scenarios ||= []
+
+      # instantiate scenario
+      scenario = Scenario.new(
+        script: self,
+        context: context,
+        description: description,
+        run_result: run_result
+      )
+
+      # run the DSL
+      scenario.instance_eval(&block)
+
+      # add to our collection of scenarios
+      @scenarios << scenario
     end
 
     #
-    # Full log
-    #
-    def log
-      @log ||= ""
-    end
-
-    #
-    # Describes which step should be run
-    #
-    def step(description)
-      @steps ||= []
-
-      # find step klass
-      steps_instance = find_steps_instance_for(description)
-
-      # check if step exists
-      if steps_instance && steps_instance.class.has_step?(description)
-        @steps << Diddy::Step.new(
-          description:      description,
-          steps_instance:   steps_instance,
-          definition:       steps_instance.class.definition(description)
-        )
-      else
-        raise "Step '#{description}' not defined"
-      end
-    end
-
-    #
-    # Runs all the steps in the script
+    # Run the script
     #
     def run
-      begin
-        self.class.write_log(scenario)
+      scenarios.each_with_index do |scenario, index|
+        # print on screen
+        puts("Scenario #{index + 1}: #{scenario.description}")
 
-        @steps.each do |step|
-          run_step(step)
-        end
-        return true
+        # also log
+        run_result.run_scenario("Scenario #{index + 1}: #{scenario.description}")
 
-      rescue ScriptAborted
-        self.class.write_log("Aborted")
-        return false
+        # run all the steps within the scenario
+        scenario.run_result = run_result
+        scenario.run
 
+        puts("\n")
       end
     end
 
     #
-    # Returns the log of the last run
+    # Defines a new script
     #
-    def self.last_log
-      @last_log ||= ""
-    end
-
+    #     Diddy::Script.define('Some recipe') do
+    #       scenario('Putting stuff in a bowl') do
+    #         step 'Put milk in it'
+    #         step 'Drink from bowl'
+    #       end
+    #     end
     #
-    # Defines a script
-    #
-    #   Diddy::Script.define('Test API') do
-    #     uses ApiSteps
-    #     uses LoginSteps
-    #
-    #     step 'Do something'
-    #     step 'Do something else'
-    #   end
-    #
-    def self.define(scenario, &block)
+    def self.define(description, &block)
       @scripts ||= []
 
-      script = self.new(scenario)
+      script = self.new(description)
       script.instance_eval(&block)
 
       @scripts << script
+
+      script
     end
 
     #
-    # Runs all defined scripts. Returns true if and only if all indivudial
-    # scripts returned true. Otherwise returns false.
+    # Returns all the defined scripts
     #
-    def self.run_all
-      # empty log
-      @last_log = ""
-
-      write_log("[#{Time.now}] Diddy starting to run #{@scripts.size} scripts")
-
-      # Run all scripts and remember their return status
-      status = @scripts.map do |script|
-        # run the script
-        result = script.run
-
-        # concat log of script to general log
-        write_log(script.log)
-
-        result
-      end
-
-      write_log("[#{Time.now}] Diddy finished running #{@scripts.size} scripts")
-
-      # If one of the scripts returned with "false"; make the entire run
-      # return false as well
-      status.include?(false) ? false : true
-    end
-
-    #
-    # Only runs given script
-    #
-    def self.only_run(scenario)
-      @scripts.select { |script| script.scenario == scenario }.first.run
-    end
-
     def self.scripts
       @scripts
     end
 
-    private
-
-    def self.write_log(message, print = true)
-      puts(message) if print
-      self.last_log << "#{message}\n"
-    end
-
     #
-    # Runs one step
+    # Runs a given script
     #
-    def run_step(step)
-      # run proc on this instance as scope
-      begin
-        result = step.run
+    def self.run(run_result, description, options = {})
+      # find script
+      script = scripts.find { |script| script.description == description }
+      raise CannotFindScriptError.new("Cannot find script #{description}") unless script
 
-      rescue Exception => exception
-        log_step(step, STATE_EXCEPTION)
-        print_exception(step, exception)
-        raise ScriptAborted.new
-      end
-
-      if result
-        log_step(step, STATE_OK)
+      # output and run
+      if options.any?
+        vars = " (" + options.map { |k, v| "#{k}=#{v}" }.join(', ') + ")"
       else
-        log_step(step, STATE_FAILED)
-        raise ScriptAborted.new
-      end
-    end
-
-    #
-    # Logs step to log
-    #
-    def log_step(step, state)
-      if state == STATE_FAILED || state == STATE_EXCEPTION
-        print(red(bold("✕ #{step.description}")))
-        self.class.write_log("✕ #{step.description}", false)
-
-        if state == STATE_EXCEPTION
-          print(" [EXCEPTION]")
-          print("\n\n")
-          self.class.write_log("[EXCEPTION]", false)
-        end
-      else
-        print(green("✓ #{step.description}"), "\n")
-        self.class.write_log("✓ #{step.description}", false)
-      end
-    end
-
-    #
-    # Prints exception thrown by step, on screen
-    #
-    def print_exception(current_step, exception)
-      # print backtrace
-      self.class.write_log("- #{exception.message}")
-      self.class.write_log("  #{exception.backtrace.join("\n  ")}")
-      self.class.write_log("\n")
-    end
-
-    #
-    # Finds the instance of the steps definition by step name
-    #
-    def find_steps_instance_for(description)
-      @steps_instances.each do |instance|
-        if instance.class.steps && instance.class.steps.has_key?(description)
-          return instance
-        end
+        vars = ""
       end
 
-      nil
+      # print to screen what we are doing
+      puts(bold("Running #{description}#{vars}"))
+
+      # also log to result logger
+      run_result.run_script("Running #{description}#{vars}")
+
+      # apply the context and run result
+      script.context = Context.new(options)
+      script.run_result = run_result
+
+      # run the entire script
+      script.run
     end
 
-    def shared_scope
-      @shared_scope ||= SharedScope.new
-    end
-
-    class ScriptAborted < Exception; end
-
+    class CannotFindScriptError < StandardError; end
   end
 end

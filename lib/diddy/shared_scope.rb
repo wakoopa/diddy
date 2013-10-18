@@ -9,10 +9,9 @@ module Diddy
     end
 
     private
-    
+
     def vars
       @vars ||= {}
     end
-
   end
 end

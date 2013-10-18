@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |gem|
   gem.name          = "diddy"
-  gem.version       = '0.7.0'
+  gem.version       = '0.8.0'
   gem.authors       = ["Diederick Lawson", "Marcel de Graaf"]
   gem.email         = ["diederick@altovista.nl", "mail@marceldegraaf.net"]
   gem.description   = %q{Diddy script runner}
@@ -16,5 +16,5 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_development_dependency "term/aniscolor"
+  gem.add_development_dependency "term/ansicolor"
 end
