@@ -9,14 +9,13 @@ module Diddy
     #
     #
     #
-    def mail(from, to)
+    def mail(subject, from, to)
       mail_text = RunResultPrinter.new(run_result).to_html
-      result = run_result.result ? 'succes' : 'failure'
 
       Mail.deliver do
         to      to
         from    from
-        subject "[Diddy] Run complete: #{result}"
+        subject subject
 
         html_part do
           content_type 'text/html; charset=UTF-8'
