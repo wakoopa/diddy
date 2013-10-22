@@ -46,12 +46,6 @@ module Diddy
         # reset scenario
         scenario.reset!
 
-        # print on screen
-        puts("Scenario #{index + 1}: #{scenario.description}")
-
-        # also log
-        run_result.run_scenario("Scenario #{index + 1}: #{scenario.description}")
-
         # run all the steps within the scenario
         scenario.run_result = run_result
         scenario.context = context
@@ -93,8 +87,17 @@ module Diddy
     # Runs a given script
     #
     def self.run(run_result, description, options = {})
+      script = nil
+
       # find script
-      script = scripts.find { |script| script.description == description }
+      if description.is_a?(String)
+        script = scripts.find { |script| script.description == description }
+
+      elsif description.is_a?(Diddy::Script)
+        script = description
+
+      end
+
       raise CannotFindScriptError.new("Cannot find script #{description}") unless script
 
       # output and run
@@ -105,10 +108,10 @@ module Diddy
       end
 
       # print to screen what we are doing
-      puts(bold("Running #{description}#{vars}"))
+      puts(bold("Running #{script.description}#{vars}"))
 
       # also log to result logger
-      run_result.run_script("Running #{description}#{vars}")
+      run_result.run_script("Running #{script.description}#{vars}")
 
       # apply the context and run result
       script.context = Context.new(options)

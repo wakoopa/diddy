@@ -19,6 +19,10 @@ module Diddy
     # Start the run of an entire scenario.
     #
     def run_scenario(description)
+      unless @current_script
+        @current_script = Script.new("Unknown")
+      end
+
       @current_scenario = Scenario.new(description)
       @current_scenario.script = @current_script
 

@@ -59,6 +59,10 @@ module Diddy
       begin
         @resetted = {}
 
+        # also log
+        puts("Scenario: #{description}")
+        run_result.run_scenario("Scenario: #{description}")
+
         @steps.each do |step|
           run_step(step)
         end
@@ -127,6 +131,16 @@ module Diddy
 
     def shared_scope
       @shared_scope ||= SharedScope.new
+    end
+
+    #
+    # Runs a given scenario
+    #
+    def self.run(run_result, scenario, options = {})
+      scenario.reset!
+      scenario.context = Context.new(options)
+      scenario.run_result = run_result
+      scenario.run
     end
 
     class ScenarioAborted < Exception; end
