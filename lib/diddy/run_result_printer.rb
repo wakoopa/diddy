@@ -7,6 +7,49 @@ module Diddy
     end
 
     #
+    # Converts the result to a string
+    #
+    def to_s
+      text = ""
+
+      run_result.scripts.each do |script|
+        text << "# #{script.description}\n"
+
+        script.scenarios.each do |scenario|
+          if scenario.result
+            text << "## #{scenario.description}\n\n"
+          else
+            text << "## [X] #{scenario.description}\n\n"
+          end
+
+          scenario.steps.each do |step|
+            if step.result
+              text << "  * #{step.description}\n"
+            else
+              text << "  * [X] #{step.description}\n"
+            end
+
+            if step.exception
+              text << "#{step.exception.message}: \n\n#{step.exception.backtrace.join("\n")}\n\n"
+            end
+
+            if step.sub_steps.any?
+              step.sub_steps.each do |sub_step|
+                if sub_step.result
+                  text << "    * #{sub_step.description}\n"
+                else
+                  text << "    * [X] #{sub_step.description}\n"
+                end
+              end
+            end
+          end
+        end
+      end
+
+      text
+    end
+
+    #
     # Converts the result to HTML
     #
     # @TODO needs to be refactored to a templating language. Quick hack for now.

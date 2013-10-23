@@ -21,6 +21,8 @@ module Diddy
     def run_scenario(description)
       unless @current_script
         @current_script = Script.new("Unknown")
+        @scripts ||= []
+        @scripts << @current_script
       end
 
       @current_scenario = Scenario.new(description)
