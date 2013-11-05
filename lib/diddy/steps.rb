@@ -75,6 +75,9 @@ module Diddy
       print("\n")
       print(blue("  . #{description}"))
 
+      result_hash = { description: description, valid: false }
+      self.sub_steps << result_hash
+
       # yield the block
       valid = yield(block)
 
@@ -88,7 +91,7 @@ module Diddy
         print(red(bold("  ✕ #{description}")))
       end
 
-      self.sub_steps << { description: description, valid: valid }
+      result_hash[:valid] = valid
     end
 
     #
