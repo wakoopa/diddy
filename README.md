@@ -7,21 +7,23 @@ with the awesome Mechanize gem.
 
 ## How it works
 
-First define a script:
+First define a script and some scenario's:
 
 
-    Diddy::Script.define('Test full server stack') do
-      uses AdminSteps
-      uses FrontendSteps
-      uses ApiSteps
+    Diddy::Script.define('Test product X') do
 
-      step "Login to backend"
-      step "Create fake user"
-      step "Login to frontend with fake user"
-      step "Do some stuff"
-      step "Check if API works"
+      scenario "Checking if app works" do
+        uses AdminSteps
+        uses FrontendSteps
+        uses ApiSteps
+
+        step "Login to backend"
+        step "Create fake user"
+        step "Login to frontend with fake user"
+        step "Do some stuff"
+        step "Check if API works"
+      end
     end
-
 
 Then, define your steps:
 
@@ -37,6 +39,20 @@ Then, define your steps:
 
 Note: every step, needs to return true. If not: the step fails. Make sure you define your steps so that they always return a true or false depending on it's action.
 
+## Dynamic/sub steps
+
+    class AdminSteps < Diddy::Steps
+      step "Test if site works" do
+        sub_step "Visit root page" do
+        end
+
+        sub_step "Download assets" do
+        end
+
+        sub_step "Check if texts are correct" do
+        end
+      end
+
 ## Scoping
 
 Every step definition class, has it own scope. To share variables between step definitions, use the shared object:
@@ -44,13 +60,13 @@ Every step definition class, has it own scope. To share variables between step d
 
     class AdminSteps < Diddy::Steps
       step "Create fake user" do
-        shared.user_id = HttpParty.post("http://admin.example.com/users", { name: 'Har' }).body.to_i
+        shared[:user_id] = HttpParty.post("http://admin.example.com/users", { name: 'Har' }).body.to_i
       end
     end
 
     class FrontendSteps < Diddy::Steps
       step "Do some stuff" do
-        HttpParty.get("http://www.example.com/api/#{shared.user_id}")
+        HttpParty.get("http://www.example.com/api/#{shared[:user_id]}")
       end
     end
 
@@ -58,12 +74,27 @@ This "shared" state (the state of the steps class and the shared vars), lives un
 
 ## Run the whole thing
 
-After defining your scripts, run the damn monkey!
+After defining your scripts, instantiate a result logger and let the monkey do it's work:
 
+    run_log = Diddy::RunResult.new
+    Diddy::Script.run(run_log, 'Script name')
 
-    Diddy::Script.run_all
+Or, only one scenario:
 
-Or, only one script:
+    ...
+    some_script = Diddy::Script.scripts.first
+    Diddy::Script.run(run_log, some_script)
 
+## Context
 
-    Diddy::Script.only_run('Full server stack test')
+It could be usefull to run the same script in another context. In that case you can pass variables around that you can use in your script/scenario:
+
+    Diddy::Script.run(run_log, 'Product X', { country: 'us' })
+    Diddy::Script.run(run_log, 'Product X', { country: 'uk' })
+
+    ...
+
+    step "Fetch current configuration" do
+      grab_config "http://api.example.com/#{context[:country]}"
+      ...
+    end
