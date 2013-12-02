@@ -65,10 +65,10 @@ module Diddy
         script.scenarios.each do |scenario|
           # result was ok? than only log the scenario itself
           if scenario.result
-            html << "<h3 class='ok'>#{scenario.description}</h3>"
+            html << "<h3 class='ok' style='color: green;'>#{scenario.description}</h3>"
           else
             # log the error and it's steps
-            html << "<h3 class='error'>#{scenario.description}</h3>"
+            html << "<h3 class='error' style='color: red;'>#{scenario.description}</h3>"
             html << "<ul>"
 
             # walk over the steps
@@ -77,7 +77,7 @@ module Diddy
               if step.result
                 html << "<li>#{step.description}"
               else
-                html << "<li class='error'>#{step.description}"
+                html << "<li class='error' style='color: red;'>#{step.description}"
               end
 
 
@@ -95,7 +95,7 @@ module Diddy
                   if sub_step.result
                     html << "<li>#{sub_step.description}</li>"
                   else
-                    html << "<li class='error'>#{sub_step.description}</li>"
+                    html << "<li class='error' style='color: red;'>#{sub_step.description}</li>"
                   end
                 end
 
