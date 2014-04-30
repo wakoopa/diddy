@@ -16,11 +16,13 @@ module Diddy
     def try_with_exception(max_times, delay = 1, &block)
       index = 0
       result = false
+      exception = nil
 
       while !result && index < max_times do
         begin
           result = yield
-        rescue Exception
+        rescue Exception => e
+          exception ||= e
           result = false
         end
 
@@ -28,6 +30,7 @@ module Diddy
         index += 1
       end
 
+      raise exception if result == false && exception
       result
     end
   end
