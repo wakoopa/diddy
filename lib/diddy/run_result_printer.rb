@@ -75,11 +75,10 @@ module Diddy
             scenario.steps.each do |step|
               # output step
               if step.result
-                html << "<li>#{step.description}"
+                html << "<li class='ok' style='color: green;'>#{step.description}"
               else
                 html << "<li class='error' style='color: red;'>#{step.description}"
               end
-
 
               # was there an exception?
               if step.exception
@@ -93,7 +92,7 @@ module Diddy
                 # walk over sub steps
                 step.sub_steps.each do |sub_step|
                   if sub_step.result
-                    html << "<li>#{sub_step.description}</li>"
+                    html << "<li class='ok' style='color: green;'>#{sub_step.description}</li>"
                   else
                     html << "<li class='error' style='color: red;'>#{sub_step.description}</li>"
                   end
